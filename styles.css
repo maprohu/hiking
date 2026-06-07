@@ -325,9 +325,10 @@ body {
     color: var(--green) !important;
 }
 
-/* ---- Toggle + backdrop (mobile only) ---- */
+/* ---- Toggle + backdrop + route bar (mobile only) ---- */
 .panel-toggle,
-.panel-backdrop {
+.panel-backdrop,
+.mobile-route-bar {
     display: none;
 }
 
@@ -403,5 +404,64 @@ body {
     /* Keep Leaflet's top-left controls clear of the toggle button */
     .leaflet-top.leaflet-left {
         margin-top: 60px;
+    }
+
+    /* Floating route switcher */
+    .mobile-route-bar.show {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        position: fixed;
+        left: 12px;
+        right: 12px;
+        bottom: 20px;
+        z-index: 1000;
+        padding: 8px;
+        background: var(--panel);
+        border-radius: 14px;
+        box-shadow: 0 4px 18px rgba(16, 24, 40, 0.22);
+    }
+
+    /* Hidden while the menu drawer is open */
+    .mobile-route-bar.show.panel-open {
+        display: none;
+    }
+
+    .mobile-route-bar select {
+        flex: 1;
+        min-width: 0;
+        padding: 11px 10px;
+        border: 1px solid var(--line);
+        border-radius: 9px;
+        font-size: 0.95rem;
+        background: #fff;
+        color: var(--ink);
+    }
+
+    .route-nav {
+        flex: 0 0 auto;
+        width: 44px;
+        height: 44px;
+        border: 1px solid var(--line);
+        border-radius: 9px;
+        background: #f3f5f4;
+        color: var(--ink);
+        font-size: 1.4rem;
+        line-height: 1;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .route-nav:active {
+        background: #e3e6e4;
+    }
+
+    .route-dl {
+        background: var(--green);
+        border-color: var(--green);
+        color: #fff;
+        font-size: 1.1rem;
     }
 }

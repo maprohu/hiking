@@ -92,6 +92,14 @@
 
     <div id="map"></div>
 
+    <!-- Floating route switcher, shown on mobile once routes exist -->
+    <div id="mobileRouteBar" class="mobile-route-bar">
+        <button id="prevRouteBtn" class="route-nav" aria-label="Previous route">‹</button>
+        <select id="mobileRouteSelect" aria-label="Select route"></select>
+        <button id="nextRouteBtn" class="route-nav" aria-label="Next route">›</button>
+        <button id="mobileDownloadBtn" class="route-nav route-dl" aria-label="Download GPX">⬇</button>
+    </div>
+
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
     <script src="script.js"></script>

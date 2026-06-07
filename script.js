@@ -18,6 +18,7 @@
 // ---- Global state ----------------------------------------------------------
 let map;
 let drawnItems;          // single FeatureGroup that holds the polygon
+let activeDrawer = null; // in-progress L.Draw.Polygon handler, if any
 let drawnPolygon = null;
 let startMarker = null;
 let routeLayers = [];    // [{ layer, color, distanceKm }]
@@ -149,6 +150,17 @@ function initDrawingControl() {
         clearRoutes();
         showStatus('Area cleared.', 'info');
     });
+
+    // Drawing finished or was cancelled — drop the active-drawer reference.
+    map.on(L.Draw.Event.DRAWSTOP, () => { activeDrawer = null; });
+}
+
+// Cancel an unfinished polygon (if one is being drawn). Returns true if it did.
+function cancelActiveDrawing() {
+    if (!activeDrawer) return false;
+    activeDrawer.disable(); // discards the in-progress shape, fires DRAWSTOP
+    activeDrawer = null;
+    return true;
 }
 
 function setupEventListeners() {
@@ -172,13 +184,27 @@ function setupEventListeners() {
         setPanelOpen(!open);
     });
     document.getElementById('panelBackdrop').addEventListener('click', () => setPanelOpen(false));
+
+    // Floating route switcher (mobile)
+    document.getElementById('mobileRouteSelect').addEventListener('change', (e) => {
+        if (e.target.value !== '') selectRoute(parseInt(e.target.value, 10));
+    });
+    document.getElementById('prevRouteBtn').addEventListener('click', () => cycleRoute(-1));
+    document.getElementById('nextRouteBtn').addEventListener('click', () => cycleRoute(1));
+    document.getElementById('mobileDownloadBtn').addEventListener('click', downloadSelectedRoute);
 }
 
 // Open/close the mobile control drawer.
 function setPanelOpen(open) {
+    // Returning to the menu mid-draw discards the unfinished polygon.
+    if (open && cancelActiveDrawing()) {
+        showStatus('Cancelled the unfinished area.', 'info');
+    }
     document.getElementById('sidebar').classList.toggle('open', open);
     document.getElementById('panelBackdrop').classList.toggle('show', open);
     document.getElementById('panelToggle').textContent = open ? '✕' : '☰';
+    // Tuck the floating route bar away while the menu is open.
+    document.getElementById('mobileRouteBar').classList.toggle('panel-open', open);
 }
 
 // ===========================================================================
@@ -187,14 +213,15 @@ function setPanelOpen(open) {
 function enablePolygonDrawing() {
     clearPolygon();
     setPanelOpen(false); // get the drawer out of the way on mobile
-    const drawer = new L.Draw.Polygon(map, {
+    activeDrawer = new L.Draw.Polygon(map, {
         shapeOptions: { color: '#27ae60', weight: 2 }
     });
-    drawer.enable();
+    activeDrawer.enable();
     showStatus('Click on the map to add points, click the first point to finish.', 'info');
 }
 
 function clearPolygon() {
+    cancelActiveDrawing(); // abandon an in-progress polygon too
     drawnItems.clearLayers();
     drawnPolygon = null;
     invalidateOsmData();
@@ -377,6 +404,7 @@ async function generateRoutes() {
     displayRoutes(routes);
     updateRouteSelector(routes);
     selectRoute(0);
+    setPanelOpen(false); // reveal the map + route switcher on mobile
     showStatus(`Generated ${routes.length} route${routes.length > 1 ? 's' : ''}.`, 'success');
 }
 
@@ -537,34 +565,54 @@ function clearRoutes() {
     routeLayers.forEach(r => map.removeLayer(r.layer));
     routeLayers = [];
     selectedRouteIndex = null;
-    const sel = document.getElementById('routeSelect');
-    sel.innerHTML = '<option value="">-- Select a route --</option>';
+    document.getElementById('routeSelect').innerHTML = '<option value="">— Select a route —</option>';
+    document.getElementById('mobileRouteSelect').innerHTML = '';
     document.getElementById('routesList').style.display = 'none';
+    document.getElementById('mobileRouteBar').classList.remove('show');
 }
 
 function updateRouteSelector(routes) {
     const sel = document.getElementById('routeSelect');
+    const msel = document.getElementById('mobileRouteSelect');
     sel.innerHTML = '';
+    msel.innerHTML = '';
     routes.forEach((route, index) => {
         const mins = Math.round(route.distanceKm / WALKING_SPEED_KMH * 60);
-        const opt = document.createElement('option');
-        opt.value = index;
-        opt.textContent = `Route ${index + 1}: ${route.distanceKm.toFixed(1)} km · ~${mins} min`;
-        sel.appendChild(opt);
+        const label = `Route ${index + 1}: ${route.distanceKm.toFixed(1)} km · ~${mins} min`;
+        for (const target of [sel, msel]) {
+            const opt = document.createElement('option');
+            opt.value = index;
+            opt.textContent = label;
+            target.appendChild(opt);
+        }
     });
     document.getElementById('routesList').style.display = 'block';
+    document.getElementById('mobileRouteBar').classList.add('show');
 }
 
 function selectRoute(index) {
     if (index < 0 || index >= routeLayers.length) return;
     routeLayers.forEach((r, i) => {
-        r.layer.setStyle({ weight: i === index ? 6 : 3, opacity: i === index ? 1 : 0.5 });
+        r.layer.setStyle({ weight: i === index ? 6 : 3, opacity: i === index ? 1 : 0.25 });
         if (i === index) r.layer.bringToFront();
     });
     selectedRouteIndex = index;
+
+    // Keep both dropdowns in sync with the current selection.
+    document.getElementById('routeSelect').value = String(index);
+    document.getElementById('mobileRouteSelect').value = String(index);
+
     const r = routeLayers[index];
     const mins = Math.round(r.distanceKm / WALKING_SPEED_KMH * 60);
     showStatus(`Route ${index + 1}: ${r.distanceKm.toFixed(1)} km, ~${mins} min walk.`, 'info');
+}
+
+// Step to the previous/next route, wrapping around for easy previewing.
+function cycleRoute(delta) {
+    if (routeLayers.length === 0) return;
+    const base = selectedRouteIndex == null ? 0 : selectedRouteIndex;
+    const next = (base + delta + routeLayers.length) % routeLayers.length;
+    selectRoute(next);
 }
 
 function downloadSelectedRoute() {
