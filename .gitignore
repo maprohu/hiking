@@ -1,0 +1,6 @@
+# Local tooling / private notes — not part of the app
+.claude/
+.github/
+
+# macOS
+.DS_Store

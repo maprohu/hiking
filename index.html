@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Circular Hiking Route Planner</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css" />
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="sidebar">
+        <h1>🌲 Circular Hiking Route Planner</h1>
+        
+        <div class="control-group">
+            <h3>1. Draw Region Boundary (Required)</h3>
+            <p class="instruction">Click "Draw Polygon" then click on the map to create vertices</p>
+            <button id="drawPolygonBtn" class="btn secondary">Draw Polygon</button>
+            <button id="clearPolygonBtn" class="btn secondary">Clear Polygon</button>
+        </div>
+
+        <div class="control-group">
+            <h3>2. Download OSM Data (Required)</h3>
+            <p class="instruction">Download OpenStreetMap data for the polygon area</p>
+            <div class="form-row">
+                <label for="roadFilter">Path Type:</label>
+                <select id="roadFilter" style="width: 100%; padding: 8px; margin-bottom: 12px;">
+                    <option value="walkable">Walkable paths only</option>
+                    <option value="all" selected>Everything (all roads)</option>
+                </select>
+            </div>
+            <button id="downloadOsmBtn" class="btn secondary">Download OSM Data</button>
+            <div id="osmStatus" class="osm-status"></div>
+        </div>
+
+        <div class="control-group">
+            <h3>3. Set Starting Point</h3>
+            <p class="instruction">Click "Place Starting Point" then click on the map</p>
+            <button id="placeStartBtn" class="btn secondary">Place Starting Point</button>
+            <button id="clearStartBtn" class="btn secondary">Clear Start Point</button>
+        </div>
+
+        <div class="control-group">
+            <h3>4. Configure Routes</h3>
+            <div class="form-row">
+                <label for="duration">Duration (hours):</label>
+                <input type="number" id="duration" value="2" min="0.5" step="0.5">
+            </div>
+            <div class="form-row">
+                <label for="routeCount">Number of routes:</label>
+                <input type="number" id="routeCount" value="3" min="1" max="10">
+            </div>
+        </div>
+
+        <div class="control-group">
+            <h3>5. Generate Routes</h3>
+            <button id="generateBtn" class="btn primary">Generate Routes</button>
+        </div>
+
+        <div id="status" class="status"></div>
+
+        <div id="routesList" class="control-group" style="display: none;">
+            <h3>Generated Routes</h3>
+            <select id="routeSelect">
+                <option value="">-- Select a route --</option>
+            </select>
+            <button id="downloadBtn" class="btn secondary">Download GPX</button>
+        </div>
+    </div>
+
+    <div id="map"></div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
