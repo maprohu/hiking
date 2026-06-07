@@ -116,8 +116,10 @@ function initDrawingControl() {
         edit: { featureGroup: drawnItems, edit: {}, remove: {} },
         draw: {
             polygon: {
-                allowIntersection: false,
-                showArea: true,
+                // Allow self-intersections: false positives on the first touch
+                // tap otherwise trigger a "shape edges cannot cross" error on
+                // mobile. A simple area outline doesn't need the restriction.
+                allowIntersection: true,
                 shapeOptions: { color: '#27ae60', weight: 2 }
             },
             polyline: false,
@@ -214,6 +216,7 @@ function enablePolygonDrawing() {
     clearPolygon();
     setPanelOpen(false); // get the drawer out of the way on mobile
     activeDrawer = new L.Draw.Polygon(map, {
+        allowIntersection: true, // avoids the false touch-tap intersection error
         shapeOptions: { color: '#27ae60', weight: 2 }
     });
     activeDrawer.enable();
