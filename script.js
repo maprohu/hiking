@@ -165,6 +165,20 @@ function setupEventListeners() {
         const v = routeSelect.value;
         if (v !== '') selectRoute(parseInt(v, 10));
     });
+
+    // Mobile drawer toggle
+    document.getElementById('panelToggle').addEventListener('click', () => {
+        const open = document.getElementById('sidebar').classList.contains('open');
+        setPanelOpen(!open);
+    });
+    document.getElementById('panelBackdrop').addEventListener('click', () => setPanelOpen(false));
+}
+
+// Open/close the mobile control drawer.
+function setPanelOpen(open) {
+    document.getElementById('sidebar').classList.toggle('open', open);
+    document.getElementById('panelBackdrop').classList.toggle('show', open);
+    document.getElementById('panelToggle').textContent = open ? '✕' : '☰';
 }
 
 // ===========================================================================
@@ -172,6 +186,7 @@ function setupEventListeners() {
 // ===========================================================================
 function enablePolygonDrawing() {
     clearPolygon();
+    setPanelOpen(false); // get the drawer out of the way on mobile
     const drawer = new L.Draw.Polygon(map, {
         shapeOptions: { color: '#27ae60', weight: 2 }
     });
@@ -187,6 +202,7 @@ function clearPolygon() {
 }
 
 function enablePlaceStartMarker() {
+    setPanelOpen(false); // get the drawer out of the way on mobile
     showStatus('Click on the map to place your starting point.', 'info');
     if (startMarker) { map.removeLayer(startMarker); startMarker = null; }
     map.once('click', handlePlaceStartMarker);

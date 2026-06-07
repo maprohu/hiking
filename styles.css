@@ -1,3 +1,16 @@
+:root {
+    --green: #2f8f5b;
+    --green-dark: #1f6b43;
+    --green-darker: #185437;
+    --ink: #1f2933;
+    --muted: #6b7280;
+    --line: #e7e9ec;
+    --bg: #f4f6f5;
+    --panel: #ffffff;
+    --radius: 12px;
+    --shadow: 0 1px 3px rgba(16, 24, 40, 0.08), 0 4px 14px rgba(16, 24, 40, 0.06);
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -9,195 +22,386 @@ body {
     height: 100vh;
     display: flex;
     overflow: hidden;
+    color: var(--ink);
+    background: var(--bg);
+    -webkit-font-smoothing: antialiased;
 }
 
+/* ---- Sidebar ---- */
 #sidebar {
-    width: 320px;
-    background: #fff;
-    padding: 20px;
+    width: 360px;
+    flex-shrink: 0;
+    background: var(--panel);
+    padding: 22px 20px 28px;
     overflow-y: auto;
-    border-right: 1px solid #ddd;
-    box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+    border-right: 1px solid var(--line);
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
 }
 
-#sidebar h1 {
-    font-size: 1.5rem;
-    margin-bottom: 20px;
-    color: #2c3e50;
+.app-header h1 {
+    font-size: 1.4rem;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
 }
 
-#sidebar h3 {
-    font-size: 1rem;
-    margin-bottom: 10px;
-    color: #34495e;
+.tagline {
+    margin-top: 6px;
+    font-size: 0.88rem;
+    color: var(--muted);
+    line-height: 1.45;
 }
 
-.instruction {
-    font-size: 0.85rem;
-    color: #7f8c8d;
-    margin-bottom: 10px;
+/* ---- Steps ---- */
+.step {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 16px;
+    box-shadow: var(--shadow);
 }
 
-.control-group {
-    margin-bottom: 20px;
-    padding-bottom: 15px;
-    border-bottom: 1px solid #eee;
-}
-
-.control-group:last-child {
-    border-bottom: none;
-}
-
-.form-row {
+.step-head {
     display: flex;
     align-items: center;
+    gap: 10px;
     margin-bottom: 10px;
 }
 
-.form-row label {
-    flex: 0 0 120px;
-    font-size: 0.9rem;
+.step-num {
+    flex-shrink: 0;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--green);
+    color: #fff;
+    font-size: 0.85rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.form-row input {
-    flex: 1;
-    padding: 8px 12px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 0.9rem;
+.step-head h2 {
+    font-size: 1rem;
+    font-weight: 650;
 }
 
+.hint {
+    font-size: 0.83rem;
+    color: var(--muted);
+    line-height: 1.5;
+    margin-bottom: 12px;
+}
+
+/* ---- Buttons ---- */
 .btn {
-    display: block;
+    appearance: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
     width: 100%;
-    padding: 10px 15px;
-    margin-bottom: 8px;
-    border: none;
-    border-radius: 4px;
-    font-size: 0.9rem;
+    padding: 11px 14px;
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    background: #f3f5f4;
+    color: var(--ink);
+    font-size: 0.92rem;
+    font-weight: 550;
     cursor: pointer;
-    transition: background-color 0.2s, transform 0.1s;
+    transition: background-color 0.15s, border-color 0.15s, transform 0.05s, box-shadow 0.15s;
 }
 
 .btn:hover {
-    transform: translateY(-1px);
+    background: #e9ecea;
 }
 
 .btn:active {
-    transform: translateY(0);
+    transform: translateY(1px);
 }
 
-.btn.primary {
-    background: #27ae60;
-    color: white;
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
 }
 
-.btn.primary:hover {
-    background: #219a52;
+.btn-ghost {
+    background: transparent;
+    color: var(--muted);
+    flex: 0 0 auto;
+    width: auto;
+    padding-left: 16px;
+    padding-right: 16px;
 }
 
-.btn.secondary {
-    background: #3498db;
-    color: white;
+.btn-ghost:hover {
+    background: #f3f5f4;
+    color: var(--ink);
 }
 
-.btn.secondary:hover {
-    background: #2980b9;
+.btn-primary {
+    background: var(--green);
+    border-color: var(--green);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(47, 143, 91, 0.3);
 }
 
-.btn.danger {
-    background: #e74c3c;
-    color: white;
+.btn-primary:hover {
+    background: var(--green-dark);
+    border-color: var(--green-dark);
 }
 
-.btn.danger:hover {
-    background: #c0392b;
+.btn-lg {
+    padding: 14px;
+    font-size: 1rem;
+    font-weight: 650;
 }
 
-#status {
-    padding: 10px;
-    border-radius: 4px;
+.btn-row {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-row .btn {
+    width: auto;
+    flex: 1;
+}
+
+/* ---- Form fields ---- */
+.field {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.field + .field {
+    margin-top: 12px;
+}
+
+.field label {
     font-size: 0.9rem;
-    margin-bottom: 15px;
+    font-weight: 500;
 }
 
-#status.info {
-    background: #e8f4fd;
-    color: #2980b9;
+.field input {
+    width: 110px;
+    padding: 9px 12px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    font-size: 0.95rem;
+    text-align: right;
+    background: #fff;
 }
 
-#status.success {
-    background: #d5f5e3;
-    color: #27ae60;
+.field input:focus,
+#routeSelect:focus {
+    outline: none;
+    border-color: var(--green);
+    box-shadow: 0 0 0 3px rgba(47, 143, 91, 0.15);
 }
 
-#status.error {
-    background: #fdedec;
-    color: #e74c3c;
+.input-affix {
+    position: relative;
+    width: 110px;
 }
 
-#status.warning {
-    background: #fef9e7;
-    color: #f39c12;
+.input-affix input {
+    width: 100%;
+    padding-right: 42px;
+}
+
+.input-affix .affix {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.8rem;
+    color: var(--muted);
+    pointer-events: none;
+}
+
+/* ---- Status messages ---- */
+.status {
+    padding: 11px 13px;
+    border-radius: 9px;
+    font-size: 0.86rem;
+    line-height: 1.45;
+    border: 1px solid transparent;
+}
+
+.status:empty {
+    display: none;
+}
+
+.status.info {
+    background: #eef5fb;
+    color: #2563a8;
+    border-color: #d7e6f5;
+}
+
+.status.success {
+    background: #e8f6ee;
+    color: var(--green-darker);
+    border-color: #cdeed9;
+}
+
+.status.error {
+    background: #fdecec;
+    color: #b3261e;
+    border-color: #f6d4d2;
+}
+
+.status.warning {
+    background: #fef6e7;
+    color: #92600a;
+    border-color: #f7e6c2;
+}
+
+/* ---- OSM status pill ---- */
+.osm-status {
+    font-size: 0.8rem;
+    margin-top: 10px;
+    padding: 8px 10px;
+    border-radius: 8px;
+}
+
+.osm-status:empty {
+    display: none;
+}
+
+.osm-status.downloaded {
+    background: #e8f6ee;
+    color: var(--green-darker);
+}
+
+.osm-status.pending {
+    background: #fef6e7;
+    color: #92600a;
+}
+
+/* ---- Routes panel ---- */
+.routes-panel {
+    border-color: #cdeed9;
+    background: #f6fbf8;
 }
 
 #routeSelect {
     width: 100%;
-    padding: 8px 12px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 0.9rem;
-    margin-bottom: 8px;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    font-size: 0.92rem;
+    background: #fff;
+    margin-bottom: 10px;
 }
 
+/* ---- Footer ---- */
+.app-footer {
+    margin-top: auto;
+    padding-top: 8px;
+    font-size: 0.74rem;
+    color: var(--muted);
+}
+
+.app-footer a {
+    color: var(--muted);
+}
+
+/* ---- Map ---- */
 #map {
     flex: 1;
     height: 100vh;
 }
 
-.leaflet-draw-toolbar a {
-    color: #3498db !important;
-}
-
-.leaflet-draw-toolbar a:hover {
-    color: #2980b9 !important;
-}
-
-.leaflet-draw-actions {
-    display: flex;
-    gap: 5px;
-}
-
-.leaflet-draw-actions li {
-    margin: 0;
-}
-
-.leaflet-draw-actions a {
-    padding: 5px 10px !important;
-}
-
-/* Custom start marker styling */
 .custom-start-marker {
     cursor: pointer;
 }
 
-.custom-start-marker:hover {
-    transform: scale(1.1);
+.leaflet-draw-toolbar a:hover {
+    color: var(--green) !important;
 }
 
-.osm-status {
-    font-size: 0.8rem;
-    margin-top: 5px;
-    padding: 5px;
-    border-radius: 4px;
+/* ---- Toggle + backdrop (mobile only) ---- */
+.panel-toggle,
+.panel-backdrop {
+    display: none;
 }
 
-.osm-status.downloaded {
-    background: #d5f5e3;
-    color: #27ae60;
-}
+/* ---- Mobile layout ---- */
+@media (max-width: 768px) {
+    #map {
+        width: 100%;
+        height: 100vh;
+        height: 100dvh;
+    }
 
-.osm-status.pending {
-    background: #fef9e7;
-    color: #f39c12;
+    #sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        width: 86%;
+        max-width: 340px;
+        padding-top: 68px;
+        z-index: 1100;
+        border-right: none;
+        box-shadow: 4px 0 24px rgba(16, 24, 40, 0.18);
+        transform: translateX(-100%);
+        transition: transform 0.26s ease;
+    }
+
+    #sidebar.open {
+        transform: translateX(0);
+    }
+
+    .panel-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: fixed;
+        top: 12px;
+        left: 12px;
+        z-index: 1200;
+        width: 48px;
+        height: 48px;
+        font-size: 1.4rem;
+        background: var(--green);
+        color: #fff;
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 3px 10px rgba(16, 24, 40, 0.3);
+        cursor: pointer;
+    }
+
+    .panel-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(16, 24, 40, 0.45);
+        z-index: 1050;
+    }
+
+    .panel-backdrop.show {
+        display: block;
+    }
+
+    /* Roomier tap targets */
+    .btn {
+        padding: 13px 14px;
+        font-size: 0.98rem;
+    }
+
+    .field input,
+    .input-affix,
+    #routeSelect {
+        font-size: 1rem;
+    }
+
+    /* Keep Leaflet's top-left controls clear of the toggle button */
+    .leaflet-top.leaflet-left {
+        margin-top: 60px;
+    }
 }

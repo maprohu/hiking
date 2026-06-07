@@ -2,64 +2,93 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Circular Hiking Route Planner</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#1f6b43">
+    <title>Hiking Loop Planner</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css" />
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div id="sidebar">
-        <h1>🌲 Circular Hiking Route Planner</h1>
-        
-        <div class="control-group">
-            <h3>1. Draw Region Boundary (Required)</h3>
-            <p class="instruction">Click "Draw Polygon" then click on the map to create vertices</p>
-            <button id="drawPolygonBtn" class="btn secondary">Draw Polygon</button>
-            <button id="clearPolygonBtn" class="btn secondary">Clear Polygon</button>
-        </div>
+    <button id="panelToggle" class="panel-toggle" aria-label="Toggle controls">☰</button>
+    <div id="panelBackdrop" class="panel-backdrop"></div>
 
-        <div class="control-group">
-            <h3>2. Download OSM Data (Required)</h3>
-            <p class="instruction">Downloads every walkable path in the area (cars-only roads excluded). Routes automatically favour trails and footpaths over busy roads.</p>
-            <button id="downloadOsmBtn" class="btn secondary">Download OSM Data</button>
+    <aside id="sidebar">
+        <header class="app-header">
+            <h1>🥾 Hiking Loop Planner</h1>
+            <p class="tagline">Draw an area, drop a start point, get circular trails that prefer footpaths.</p>
+        </header>
+
+        <section class="step">
+            <div class="step-head">
+                <span class="step-num">1</span>
+                <h2>Choose your area</h2>
+            </div>
+            <p class="hint">Use the polygon or rectangle tool on the map to outline where you'd like to hike.</p>
+            <div class="btn-row">
+                <button id="drawPolygonBtn" class="btn">✏️ Draw area</button>
+                <button id="clearPolygonBtn" class="btn btn-ghost">Clear</button>
+            </div>
+        </section>
+
+        <section class="step">
+            <div class="step-head">
+                <span class="step-num">2</span>
+                <h2>Load the paths</h2>
+            </div>
+            <p class="hint">Pulls every walkable path in the area from OpenStreetMap. Busy roads are avoided; trails and footpaths are preferred.</p>
+            <button id="downloadOsmBtn" class="btn">⬇️ Download path data</button>
             <div id="osmStatus" class="osm-status"></div>
-        </div>
+        </section>
 
-        <div class="control-group">
-            <h3>3. Set Starting Point</h3>
-            <p class="instruction">Click "Place Starting Point" then click on the map</p>
-            <button id="placeStartBtn" class="btn secondary">Place Starting Point</button>
-            <button id="clearStartBtn" class="btn secondary">Clear Start Point</button>
-        </div>
-
-        <div class="control-group">
-            <h3>4. Configure Routes</h3>
-            <div class="form-row">
-                <label for="duration">Duration (hours):</label>
-                <input type="number" id="duration" value="2" min="0.5" step="0.5">
+        <section class="step">
+            <div class="step-head">
+                <span class="step-num">3</span>
+                <h2>Set the start</h2>
             </div>
-            <div class="form-row">
-                <label for="routeCount">Number of routes:</label>
-                <input type="number" id="routeCount" value="3" min="1" max="10">
+            <p class="hint">Place where your loop begins and ends.</p>
+            <div class="btn-row">
+                <button id="placeStartBtn" class="btn">📍 Place start</button>
+                <button id="clearStartBtn" class="btn btn-ghost">Clear</button>
             </div>
-        </div>
+        </section>
 
-        <div class="control-group">
-            <h3>5. Generate Routes</h3>
-            <button id="generateBtn" class="btn primary">Generate Routes</button>
-        </div>
+        <section class="step">
+            <div class="step-head">
+                <span class="step-num">4</span>
+                <h2>Route options</h2>
+            </div>
+            <div class="field">
+                <label for="duration">Walk duration</label>
+                <div class="input-affix">
+                    <input type="number" id="duration" value="2" min="0.5" step="0.5" inputmode="decimal">
+                    <span class="affix">hrs</span>
+                </div>
+            </div>
+            <div class="field">
+                <label for="routeCount">How many routes</label>
+                <input type="number" id="routeCount" value="3" min="1" max="10" inputmode="numeric">
+            </div>
+        </section>
+
+        <button id="generateBtn" class="btn btn-primary btn-lg">Generate routes</button>
 
         <div id="status" class="status"></div>
 
-        <div id="routesList" class="control-group" style="display: none;">
-            <h3>Generated Routes</h3>
+        <section id="routesList" class="step routes-panel" style="display: none;">
+            <div class="step-head">
+                <h2>Your routes</h2>
+            </div>
             <select id="routeSelect">
-                <option value="">-- Select a route --</option>
+                <option value="">— Select a route —</option>
             </select>
-            <button id="downloadBtn" class="btn secondary">Download GPX</button>
-        </div>
-    </div>
+            <button id="downloadBtn" class="btn btn-ghost">⬇️ Download GPX</button>
+        </section>
+
+        <footer class="app-footer">
+            Map data © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors
+        </footer>
+    </aside>
 
     <div id="map"></div>
 
