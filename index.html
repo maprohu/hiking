@@ -21,14 +21,7 @@
 
         <div class="control-group">
             <h3>2. Download OSM Data (Required)</h3>
-            <p class="instruction">Download OpenStreetMap data for the polygon area</p>
-            <div class="form-row">
-                <label for="roadFilter">Path Type:</label>
-                <select id="roadFilter" style="width: 100%; padding: 8px; margin-bottom: 12px;">
-                    <option value="walkable">Walkable paths only</option>
-                    <option value="all" selected>Everything (all roads)</option>
-                </select>
-            </div>
+            <p class="instruction">Downloads every walkable path in the area (cars-only roads excluded). Routes automatically favour trails and footpaths over busy roads.</p>
             <button id="downloadOsmBtn" class="btn secondary">Download OSM Data</button>
             <div id="osmStatus" class="osm-status"></div>
         </div>

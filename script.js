@@ -27,26 +27,54 @@ let osmGraph = null;     // { nodes: Map<id,{lat,lng}>, adj: Map<id,[{to,dist}]>
 // ---- Constants -------------------------------------------------------------
 const WALKING_SPEED_KMH = 5;
 
-// Paths a hiker would actually use.
-const WALKABLE_HIGHWAYS = new Set([
-    'footway', 'path', 'track', 'pedestrian', 'steps', 'bridleway',
-    'living_street', 'residential', 'unclassified', 'service', 'cycleway',
-    'tertiary', 'secondary', 'road'
+// Highways you can't/shouldn't walk on — dropped entirely (cars only).
+const EXCLUDED_HIGHWAYS = new Set([
+    'motorway', 'motorway_link', 'trunk', 'trunk_link',
+    'raceway', 'bus_guideway', 'escape', 'construction', 'proposed'
 ]);
-// Everything routable on foot (still excludes motorways/trunk roads).
-const ALL_HIGHWAYS = new Set([
-    'primary', 'secondary', 'tertiary', 'unclassified', 'residential',
-    'service', 'track', 'path', 'footway', 'pedestrian', 'living_street',
-    'steps', 'cycleway', 'bridleway', 'road',
-    'primary_link', 'secondary_link', 'tertiary_link'
+
+// Routing-cost multiplier per highway type. Below 1 = the router prefers it
+// (trails, footpaths); above 1 = avoided unless necessary (busy roads).
+// This only shapes which way the route prefers — reported distance/time always
+// use real ground length, so a longer scenic loop still reports honestly.
+const HIGHWAY_PREFERENCE = {
+    path: 0.5, footway: 0.5, bridleway: 0.55, steps: 0.6, track: 0.6,
+    pedestrian: 0.7, cycleway: 0.8, living_street: 0.9, footpath: 0.5,
+    service: 1.0, residential: 1.0, unclassified: 1.0, road: 1.2,
+    tertiary: 1.6, tertiary_link: 1.6,
+    secondary: 2.6, secondary_link: 2.6,
+    primary: 4.0, primary_link: 4.0
+};
+
+// Natural/unpaved surfaces — nudge these down so dirt trails win ties.
+const UNPAVED_SURFACES = new Set([
+    'unpaved', 'ground', 'dirt', 'earth', 'grass', 'gravel', 'fine_gravel',
+    'compacted', 'pebblestone', 'sand', 'rock', 'mud', 'woodchips', 'grass_paver'
 ]);
+
+// Should this OSM way be part of the walkable network at all?
+function wayIncluded(tags) {
+    if (!tags.highway) return false;
+    if (EXCLUDED_HIGHWAYS.has(tags.highway)) return false;
+    if (tags.foot === 'no' || tags.access === 'private' || tags.access === 'no') return false;
+    return true;
+}
+
+// Cost multiplier for a way, combining type + foot/trail/surface hints.
+function wayPreference(tags) {
+    let m = HIGHWAY_PREFERENCE[tags.highway] ?? 1.3;
+    if (tags.foot === 'designated' || tags.foot === 'yes') m *= 0.8;
+    if (tags.sac_scale || tags.trail_visibility) m *= 0.85; // tagged hiking trail
+    if (UNPAVED_SURFACES.has(tags.surface)) m *= 0.85;       // natural surface
+    return m;
+}
 
 // ===========================================================================
 //  Map setup
 // ===========================================================================
 function initMap() {
-    let center = [46.8182, 8.2275]; // Swiss Alps default
-    let zoom = 13;
+    let center = [38.7918, -9.3906]; // Sintra, Portugal (default)
+    let zoom = 14;
 
     try {
         const savedCenter = localStorage.getItem('hikingMapCenter');
@@ -222,11 +250,8 @@ async function downloadOsmData() {
         if (!response.ok) throw new Error(`Overpass returned ${response.status}`);
 
         const data = await response.json();
-        const filter = document.getElementById('roadFilter').value === 'all'
-            ? ALL_HIGHWAYS : WALKABLE_HIGHWAYS;
-
         const polygonLatLngs = getPolygonRing();
-        osmGraph = buildGraph(data, filter, polygonLatLngs);
+        osmGraph = buildGraph(data, polygonLatLngs);
 
         const osmStatusEl = document.getElementById('osmStatus');
         if (osmGraph.nodes.size === 0) {
@@ -249,24 +274,27 @@ async function downloadOsmData() {
 
 // Build an undirected, distance-weighted graph from Overpass ways.
 // Only keeps vertices that fall inside the drawn polygon so routes stay in area.
-function buildGraph(data, highwayFilter, polygonRing) {
+function buildGraph(data, polygonRing) {
     const nodes = new Map();          // id -> {lat, lng}
-    const adj = new Map();            // id -> [{to, dist}]
+    const adj = new Map();            // id -> [{to, dist, weight}]
     let edgeCount = 0;
 
-    const addEdge = (a, b, dist) => {
+    // dist = true ground length (km); weight = routing cost after the trail
+    // preference multiplier (a lower cost makes the router favour that edge).
+    const addEdge = (a, b, dist, weight) => {
         if (!adj.has(a)) adj.set(a, []);
         if (!adj.has(b)) adj.set(b, []);
-        adj.get(a).push({ to: b, dist });
-        adj.get(b).push({ to: a, dist });
+        adj.get(a).push({ to: b, dist, weight });
+        adj.get(b).push({ to: a, dist, weight });
         edgeCount++;
     };
 
     for (const el of data.elements || []) {
-        if (el.type !== 'way' || !el.tags || !el.tags.highway) continue;
-        if (!highwayFilter.has(el.tags.highway)) continue;
-        if (el.tags.access === 'private' || el.tags.access === 'no') continue;
+        if (el.type !== 'way' || !el.tags) continue;
+        if (!wayIncluded(el.tags)) continue;
         if (!el.geometry || !el.nodes) continue;
+
+        const mult = wayPreference(el.tags);
 
         let prevId = null, prevPt = null;
         for (let i = 0; i < el.nodes.length; i++) {
@@ -283,7 +311,8 @@ function buildGraph(data, highwayFilter, polygonRing) {
 
             if (!nodes.has(id)) nodes.set(id, pt);
             if (prevId !== null) {
-                addEdge(prevId, id, haversineKm(prevPt, pt));
+                const d = haversineKm(prevPt, pt);
+                addEdge(prevId, id, d, d * mult);
             }
             prevId = id; prevPt = pt;
         }
@@ -416,10 +445,10 @@ function dijkstra(source, target, penalizedEdges) {
         if (u === target) break;
 
         const neighbors = osmGraph.adj.get(u) || [];
-        for (const { to, dist: w } of neighbors) {
-            let cost = w;
+        for (const { to, weight } of neighbors) {
+            let cost = weight;
             if (penalizedEdges && penalizedEdges.has(edgeKey(u, to))) {
-                cost = w * 4 + 0.05; // discourage reusing the outbound path
+                cost = weight * 4 + 0.05; // discourage reusing the outbound path
             }
             const nd = d + cost;
             if (nd < (dist.get(to) ?? Infinity)) {

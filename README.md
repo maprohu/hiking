@@ -13,8 +13,8 @@ routing happens in your browser.
 
 1. **Draw the area** — click *Draw Polygon* (or use the rectangle tool on the
    map) and outline where you want to hike.
-2. **Download OSM Data** — fetches the walking paths inside your area from
-   OpenStreetMap. Pick *Walkable paths only* or *Everything (all roads)*.
+2. **Download OSM Data** — fetches every walkable path inside your area from
+   OpenStreetMap (cars-only roads like motorways are excluded).
 3. **Place a start point** — click *Place Starting Point*, then click the map.
 4. **Configure** — set the desired duration (hours) and how many routes you want.
 5. **Generate Routes** — get a set of loops, each labelled with its real
