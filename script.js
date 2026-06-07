@@ -180,6 +180,10 @@ function setupEventListeners() {
         if (v !== '') selectRoute(parseInt(v, 10));
     });
 
+    // Desktop route cycle buttons
+    document.getElementById('prevRouteBtnDesktop').addEventListener('click', () => cycleRoute(-1));
+    document.getElementById('nextRouteBtnDesktop').addEventListener('click', () => cycleRoute(1));
+
     // Mobile drawer toggle
     document.getElementById('panelToggle').addEventListener('click', () => {
         const open = document.getElementById('sidebar').classList.contains('open');

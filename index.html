@@ -79,9 +79,13 @@
             <div class="step-head">
                 <h2>Your routes</h2>
             </div>
-            <select id="routeSelect">
-                <option value="">— Select a route —</option>
-            </select>
+            <div class="route-controls">
+                <button id="prevRouteBtnDesktop" class="btn btn-ghost route-cycle-btn" aria-label="Previous route">‹</button>
+                <select id="routeSelect">
+                    <option value="">— Select a route —</option>
+                </select>
+                <button id="nextRouteBtnDesktop" class="btn btn-ghost route-cycle-btn" aria-label="Next route">›</button>
+            </div>
             <button id="downloadBtn" class="btn btn-ghost">⬇️ Download GPX</button>
         </section>
 
