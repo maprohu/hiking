@@ -1,111 +1,162 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#1f6b43">
-    <title>Hiking Loop Planner</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css" />
-    <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#1f6b43">
+  <title>Hike Route Planner</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='80' font-size='80'>🥾</text></svg>">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <button id="panelToggle" class="panel-toggle" aria-label="Toggle controls">☰</button>
-    <div id="panelBackdrop" class="panel-backdrop"></div>
+  <div id="app">
+    <aside id="panel">
+      <header id="panelHeader">
+        <h1>🥾 Hike Route Planner</h1>
+        <div class="header-actions">
+          <button id="savedRoutesBtn" title="Saved routes" aria-label="Saved routes">📚</button>
+          <button id="settingsBtn" title="Settings" aria-label="Settings">⚙️</button>
+          <button id="sheetToggle" title="Collapse panel" aria-label="Collapse panel">▾</button>
+        </div>
+      </header>
 
-    <aside id="sidebar">
-        <header class="app-header">
-            <h1>🥾 Hiking Loop Planner</h1>
-            <p class="tagline">Draw an area, drop a start point, get circular trails that prefer footpaths.</p>
-        </header>
-
-        <section class="step">
-            <div class="step-head">
-                <span class="step-num">1</span>
-                <h2>Choose your area</h2>
-            </div>
-            <p class="hint">Use the polygon or rectangle tool on the map to outline where you'd like to hike.</p>
-            <div class="btn-row">
-                <button id="drawPolygonBtn" class="btn">✏️ Draw area</button>
-                <button id="clearPolygonBtn" class="btn btn-ghost">Clear</button>
-            </div>
+      <div id="panelBody">
+        <section id="view-areas" class="view">
+          <h2>1 · Pick an area</h2>
+          <p class="hint">Choose a saved area, tap its polygon on the map, or draw a new one.</p>
+          <ul id="areaList" class="card-list"></ul>
+          <button id="newAreaBtn" class="btn primary">＋ New area</button>
+          <button id="fitAreasBtn" class="btn ghost">🗺 View all on map</button>
         </section>
 
-        <section class="step">
-            <div class="step-head">
-                <span class="step-num">2</span>
-                <h2>Load the paths</h2>
-            </div>
-            <p class="hint">Pulls every walkable path in the area from OpenStreetMap. Busy roads are avoided; trails and footpaths are preferred.</p>
-            <button id="downloadOsmBtn" class="btn">⬇️ Download path data</button>
-            <div id="osmStatus" class="osm-status"></div>
+        <section id="view-draw" class="view hidden">
+          <h2>Draw your area</h2>
+          <p class="hint">Tap the map to add corners (at least 3), then finish.</p>
+          <div class="field">
+            <label for="areaLabel">Name</label>
+            <input id="areaLabel" placeholder="e.g. Sintra hills">
+          </div>
+          <div class="btn-row">
+            <button id="drawFinishBtn" class="btn primary" disabled>Finish</button>
+            <button id="drawUndoBtn" class="btn ghost">Undo</button>
+            <button id="drawCancelBtn" class="btn ghost">Cancel</button>
+          </div>
         </section>
 
-        <section class="step">
-            <div class="step-head">
-                <span class="step-num">3</span>
-                <h2>Set the start</h2>
-            </div>
-            <p class="hint">Place where your loop begins and ends.</p>
-            <div class="btn-row">
-                <button id="placeStartBtn" class="btn">📍 Place start</button>
-                <button id="clearStartBtn" class="btn btn-ghost">Clear</button>
-            </div>
+        <section id="view-mode" class="view hidden">
+          <button class="back" data-back="areas">‹ Areas</button>
+          <h2>2 · Route type</h2>
+          <button id="modeCircularBtn" class="btn big">🔁 <span><strong>Circular</strong><br>Start and finish at the same spot</span></button>
+          <button id="modeLinearBtn" class="btn big">➡️ <span><strong>Linear</strong><br>From point A to point B</span></button>
         </section>
 
-        <section class="step">
-            <div class="step-head">
-                <span class="step-num">4</span>
-                <h2>Route options</h2>
-            </div>
-            <div class="field">
-                <label for="duration">Walk duration</label>
-                <div class="input-affix">
-                    <input type="number" id="duration" value="2" min="0.5" step="0.5" inputmode="decimal">
-                    <span class="affix">hrs</span>
-                </div>
-            </div>
-            <div class="field">
-                <label for="routeCount">How many routes</label>
-                <input type="number" id="routeCount" value="3" min="1" max="10" inputmode="numeric">
-            </div>
+        <section id="view-points" class="view hidden">
+          <button class="back" data-back="mode">‹ Route type</button>
+          <h2>3 · Pick your point(s)</h2>
+          <div class="point-row">
+            <div class="point-info"><strong>Start</strong><span id="startStatus"></span></div>
+            <button id="startSaveBtn" class="icon-btn hidden" title="Save this point">💾</button>
+            <button id="startPickBtn" class="icon-btn" title="Place on map">📍</button>
+          </div>
+          <div class="point-row hidden" id="endBlock">
+            <div class="point-info"><strong>End</strong><span id="endStatus"></span></div>
+            <button id="endSaveBtn" class="icon-btn hidden" title="Save this point">💾</button>
+            <button id="endPickBtn" class="icon-btn" title="Place on map">📍</button>
+          </div>
+          <h3>Saved points</h3>
+          <ul id="savedPointList" class="card-list"></ul>
+          <p class="hint">Tap the map to drop a point — it snaps to the nearest trail or road.</p>
+          <button id="pointsNextBtn" class="btn primary" disabled>Continue</button>
         </section>
 
-        <button id="generateBtn" class="btn btn-primary btn-lg">Generate routes</button>
-
-        <div id="status" class="status"></div>
-
-        <section id="routesList" class="step routes-panel" style="display: none;">
-            <div class="step-head">
-                <h2>Your routes</h2>
+        <section id="view-params" class="view hidden">
+          <button class="back" data-back="points">‹ Points</button>
+          <h2>4 · Length &amp; options</h2>
+          <div class="field">
+            <label for="lengthInput">Target length</label>
+            <div class="row">
+              <input type="number" id="lengthInput" min="0.5" step="0.5" inputmode="decimal">
+              <select id="unitSelect">
+                <option value="km">km</option>
+                <option value="hours">hours</option>
+              </select>
             </div>
-            <div class="route-controls">
-                <button id="prevRouteBtnDesktop" class="btn btn-ghost route-cycle-btn" aria-label="Previous route">‹</button>
-                <select id="routeSelect">
-                    <option value="">— Select a route —</option>
-                </select>
-                <button id="nextRouteBtnDesktop" class="btn btn-ghost route-cycle-btn" aria-label="Next route">›</button>
-            </div>
-            <button id="downloadBtn" class="btn btn-ghost">⬇️ Download GPX</button>
+          </div>
+          <div class="field hidden" id="paceField">
+            <label for="paceInput">Walking pace (km/h)</label>
+            <input type="number" id="paceInput" min="1" max="8" step="0.5" inputmode="decimal">
+          </div>
+          <p class="hint hidden" id="hoursHint">Time is estimated from distance only — OSM has no elevation data, so hilly routes will take longer.</p>
+          <div class="field">
+            <label for="countInput">Number of routes</label>
+            <input type="number" id="countInput" min="1" max="10" inputmode="numeric">
+          </div>
+          <label class="check">
+            <input type="checkbox" id="avoidSidewalksChk"> Avoid sidewalks
+          </label>
+          <button id="generateBtn" class="btn primary">Generate routes</button>
         </section>
 
-        <footer class="app-footer">
-            Map data © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors
-        </footer>
+        <section id="view-results" class="view hidden">
+          <button class="back" data-back="params">‹ Options</button>
+          <h2>5 · Your routes</h2>
+          <div class="route-nav">
+            <button id="prevRouteBtn" class="nav-arrow" aria-label="Previous route">‹</button>
+            <div id="routeInfo"></div>
+            <button id="nextRouteBtn" class="nav-arrow" aria-label="Next route">›</button>
+          </div>
+          <p id="routeNote" class="hint"></p>
+          <div class="btn-row">
+            <button id="saveRouteBtn" class="btn">💾 Save</button>
+            <button id="exportRouteBtn" class="btn">⬇️ GPX</button>
+          </div>
+          <button id="regenBtn" class="btn ghost">🎲 Regenerate</button>
+        </section>
+
+        <section id="view-saved" class="view hidden">
+          <button class="back" id="savedBackBtn">‹ Back</button>
+          <h2>Saved routes</h2>
+          <p class="hint">Tap a route to preview it on the map.</p>
+          <ul id="savedRouteList" class="card-list"></ul>
+        </section>
+      </div>
+
+      <footer id="panelFooter">
+        Map data © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors (ODbL)
+      </footer>
     </aside>
 
     <div id="map"></div>
+  </div>
 
-    <!-- Floating route switcher, shown on mobile once routes exist -->
-    <div id="mobileRouteBar" class="mobile-route-bar">
-        <button id="prevRouteBtn" class="route-nav" aria-label="Previous route">‹</button>
-        <select id="mobileRouteSelect" aria-label="Select route"></select>
-        <button id="nextRouteBtn" class="route-nav" aria-label="Next route">›</button>
-        <button id="mobileDownloadBtn" class="route-nav route-dl" aria-label="Download GPX">⬇</button>
+  <div id="overlay" class="hidden">
+    <div class="spinner"></div>
+    <div id="overlayText"></div>
+  </div>
+  <div id="toast" class="hidden" role="status"></div>
+
+  <dialog id="settingsDialog">
+    <h2>Settings</h2>
+    <div class="field">
+      <label for="overpassSelect">Overpass instance</label>
+      <select id="overpassSelect"></select>
+      <input id="overpassCustom" class="hidden" placeholder="https://…/api/interpreter">
     </div>
+    <p class="hint">Data is cached after the first download — areas are only re-fetched when you press ⟳.</p>
+    <div class="btn-row">
+      <button id="settingsSaveBtn" class="btn primary">Save</button>
+      <button id="settingsCloseBtn" class="btn ghost">Cancel</button>
+    </div>
+  </dialog>
 
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
-    <script src="script.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="js/geo.js"></script>
+  <script src="js/db.js"></script>
+  <script src="js/overpass.js"></script>
+  <script src="js/graph.js"></script>
+  <script src="js/router.js"></script>
+  <script src="js/gpx.js"></script>
+  <script src="js/app.js"></script>
 </body>
 </html>
